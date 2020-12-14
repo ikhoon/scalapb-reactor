@@ -53,22 +53,29 @@ class ReactorFilePrinter(
   implicits: DescriptorImplicits,
   file: FileDescriptor
 ) {
+
   import implicits._
 
-  val Channel             = "_root_.io.grpc.Channel"
-  val CallOptions         = "_root_.io.grpc.CallOptions"
-  val Status              = "_root_.io.grpc.Status"
-  val Deadline            = "_root_.io.grpc.Deadline"
-  val methodDescriptor    = "_root_.io.grpc.MethodDescriptor"
-  val Nanos               = "_root_.java.util.concurrent.TimeUnit.NANOSECONDS"
-  val serverServiceDef    = "_root_.io.grpc.ServerServiceDefinition"
-  val ReactorServerCalls  = "_root_.com.salesforce.reactorgrpc.stub.ServerCalls"
-  val ServerCalls         = "_root_.io.grpc.stub.ServerCalls"
-  val StreamObserver = "_root_.io.grpc.stub.StreamObserver"
-  val SFlux = "_root_.reactor.core.scala.publisher.SFlux"
+  private val AbstractStub = "_root_.io.grpc.stub.AbstractStub"
+  private val Channel = "_root_.io.grpc.Channel"
+  private val CallOptions = "_root_.io.grpc.CallOptions"
+  private val Status = "_root_.io.grpc.Status"
+  private val Deadline = "_root_.io.grpc.Deadline"
+  private val methodDescriptor = "_root_.io.grpc.MethodDescriptor"
+  private val Nanos = "_root_.java.util.concurrent.TimeUnit.NANOSECONDS"
+  private val serverServiceDef = "_root_.io.grpc.ServerServiceDefinition"
+  private val ReactorServerCalls = "_root_.com.salesforce.reactorgrpc.stub.ServerCalls"
+  private val ReactorClientCalls = "_root_.com.salesforce.reactorgrpc.stub.ClientCalls"
+  private val ServerCalls = "_root_.io.grpc.stub.ServerCalls"
+  private val ClientCalls = "_root_.io.grpc.stub.ClientCalls"
+  private val StreamObserver = "_root_.io.grpc.stub.StreamObserver"
+  private val Mono = "_root_.reactor.core.publisher.Mono"
+  private val SMono = "_root_.reactor.core.scala.publisher.SMono"
+  private val SFlux = "_root_.reactor.core.scala.publisher.SFlux"
 
 
-  private val FileName: implicits.ScalaName = file.scalaPackage / s"Reactor${NameUtils.snakeCaseToCamelCase(baseName(file.getName), true)}"
+  private val FileName = file.scalaPackage /
+    s"Reactor${NameUtils.snakeCaseToCamelCase(baseName(file.getName), true)}"
 
   def scalaFileName: String =
     FileName.fullName.replace('.', '/') + ".scala"
@@ -81,7 +88,7 @@ class ReactorFilePrinter(
       "import scala.language.implicitConversions",
       "",
     ).print(file.getServices().asScala)((fp, s) => new ServicePrinter(s).print(fp))
-     .result()
+      .result()
   }
 
   def result(): CodeGeneratorResponse.File = {
@@ -93,70 +100,82 @@ class ReactorFilePrinter(
   }
 
   class ServicePrinter(service: ServiceDescriptor) {
+
     import implicits._
 
     private val OuterObject = file.scalaPackage / s"${service.name}ReactorGrpc"
 
-    private val traitName  = OuterObject / service.name
+    // TODO(ikhoon): Append Reactor to traitName?
+    private val traitName = OuterObject / service.name
+    private val asyncStubName = traitName.name + "ReactorStub"
 
-    def methodSignature(method: MethodDescriptor): String = {
+    def print(fp: FunctionalPrinter): FunctionalPrinter =
+      fp.add(s"object ${OuterObject.name} {")
+        .indent
+        .add(s"val SERVICE: _root_.io.grpc.ServiceDescriptor = ${service.grpcDescriptor.fullName}")
+        .add("")
+        .add(
+          s"trait ${traitName.name} {"
+        ).indented(
+        _.print(service.getMethods().asScala.toVector)(printMethodSignature())
+      ).add("}")
+        .add("")
+        .add(s"object ${traitName.name} {")
+        .indented(
+          _.add(s"def bindService(serviceImpl: ${traitName.fullName}): $serverServiceDef = ")
+           .indent
+           .add(s"$serverServiceDef.builder(${service.grpcDescriptor.fullName})")
+           .print(service.getMethods().asScala.toVector)(
+             printBindService(_, _)
+           )
+           .add(".build()")
+           .outdent
+        )
+        .add("}")
+        .add("")
+        .add(s"class $asyncStubName(channel: $Channel, options: $CallOptions = $CallOptions.DEFAULT) ",
+          s"extends $AbstractStub[$asyncStubName](channel, options) with ${traitName.name} {")
+        .indented(
+          _.print(service.getMethods().asScala.toVector)(printAsyncClientStub(_, _))
+           .add(s"override def build(channel: $Channel, options: $CallOptions): $asyncStubName = new $asyncStubName(channel, options)")
+        )
+        // TODO print blocking client stub?
+        .add("}")
+        .add("")
+        .add(s"def stub(channel: $Channel): $asyncStubName = new $asyncStubName(channel)")
+        .add("")
+        .outdent
+        .add("}")
+
+    private def methodSignature(method: MethodDescriptor): String = {
       val reqType = method.inputType.scalaType
       val resType = method.outputType.scalaType
 
       s"def ${method.name}" + (method.streamType match {
-        case StreamType.Unary           =>
+        case StreamType.Unary =>
           s"(request: $reqType): ${smono(resType)}"
         case StreamType.ClientStreaming =>
           s"(request: ${sflux(reqType)}): ${smono(resType)}"
         case StreamType.ServerStreaming =>
           s"(request: $reqType): ${sflux(resType)}"
-        case StreamType.Bidirectional   =>
+        case StreamType.Bidirectional =>
           s"(request: ${sflux(reqType)}): ${sflux(resType)}"
       })
     }
 
-    def printMethodSignature()(fp: FunctionalPrinter, method: MethodDescriptor): FunctionalPrinter =
+    private def printMethodSignature()(fp: FunctionalPrinter, method: MethodDescriptor): FunctionalPrinter =
       fp.add(methodSignature(method))
 
-    def print(fp: FunctionalPrinter): FunctionalPrinter =
-      fp.add(s"object ${OuterObject.name} {")
-        .indent
-        .add(
-          s"trait ${traitName.name} {"
-        ).indented(
-          _.print(service.getMethods().asScala.toVector)(printMethodSignature())
-        ).add("}")
-         .add("")
-         .add(s"object ${traitName.name} {")
-         .indented(
-            _.add(s"def bindService(serviceImpl: ${traitName.fullName}): $serverServiceDef = ")
-             .indent
-               .add(s"$serverServiceDef.builder(${service.grpcDescriptor.fullName})")
-                .print(service.getMethods().asScala.toVector)(
-                  printBindService(_, _)
-                )
-                .add(".build()")
-                .outdent
-             )
-          .add("}")
-          .add("")
-        .add(s"val SERVICE: _root_.io.grpc.ServiceDescriptor = ${service.grpcDescriptor.fullName}")
-        .outdent
-        .add("}")
-
-    def printBindService(
-      fp: FunctionalPrinter,
-      method: MethodDescriptor
-    ): FunctionalPrinter = {
+    private def printBindService(fp: FunctionalPrinter, method: MethodDescriptor): FunctionalPrinter = {
       val reqType = method.inputType.scalaType
       val resType = method.outputType.scalaType
       val serviceCall = s"serviceImpl.${method.name}"
 
       val fp0 = fp.add(".addMethod(")
-        .indent
-        .add(
-          s"${method.grpcDescriptor.fullName},"
-        )
+                  .indent
+                  .add(
+                    s"${method.grpcDescriptor.fullName},"
+                  )
 
       val fp1 = method.streamType match {
         case StreamType.Unary =>
@@ -198,10 +217,54 @@ class ReactorFilePrinter(
          .outdent
          .add(")")
     }
+
+    private def printAsyncClientStub(fp: FunctionalPrinter, method: MethodDescriptor): FunctionalPrinter = {
+      val reqType = method.inputType.scalaType
+      val resType = method.outputType.scalaType
+      val serviceCall = s"serviceImpl.${method.name}"
+
+      val fp1= method.streamType match {
+        case StreamType.Unary =>
+          fp.add(s"override def ${method.name}(request: $reqType): ${smono(resType)} =")
+            .indent
+            .add(s"$SMono.fromPublisher($ReactorClientCalls.oneToOne($Mono.just(request), (req: $reqType, observer: $StreamObserver[$resType]) => {")
+            .indent
+            .add(s"$ClientCalls.asyncUnaryCall(getChannel().newCall(${method.grpcDescriptor.fullName}, getCallOptions()), req, observer)")
+        case StreamType.ClientStreaming =>
+          fp.add(s"override def ${method.name}(request: ${sflux(reqType)}): ${smono(resType)} =")
+            .indent
+            .add(s"$SMono.fromPublisher($ReactorClientCalls.manyToOne(request.asJava(), (res: $StreamObserver[$resType]) => {")
+            .indent
+            .add(s"$ClientCalls.asyncClientStreamingCall(getChannel().newCall(${method.grpcDescriptor.fullName}, getCallOptions()), res)")
+        case StreamType.ServerStreaming =>
+          fp.add(s"override def ${method.name}(request: $reqType): ${sflux(resType)} =")
+            .indent
+            .add(s"$SFlux.fromPublisher($ReactorClientCalls.oneToMany($Mono.just(request), (req: $reqType, res: $StreamObserver[$resType]) => {")
+            .indent
+            .add(s"$ClientCalls.asyncServerStreamingCall(getChannel().newCall(${method.grpcDescriptor.fullName}, getCallOptions()), req, res)")
+        case StreamType.Bidirectional =>
+          fp.add(s"override def ${method.name}(request: ${sflux(reqType)}): ${sflux(resType)} =")
+            .indent
+            .add(s"$SFlux.fromPublisher($ReactorClientCalls.manyToMany(request.asJava(), (res: $StreamObserver[$resType]) => {")
+            .indent
+            .add(s"$ClientCalls.asyncBidiStreamingCall(getChannel().newCall(${method.grpcDescriptor.fullName}, getCallOptions()), res)")
+      }
+
+      fp1.outdent
+         .add("}, getCallOptions()))")
+         .outdent
+         .add("")
+    }
+
+    private def sflux(tpe: String) = s"_root_.reactor.core.scala.publisher.SFlux[$tpe]"
+
+    private def smono(tpe: String) = s"_root_.reactor.core.scala.publisher.SMono[$tpe]"
+
+    private def mono(tpe: String) = s"_root_.reactor.core.publisher.Mono[$tpe]"
+
+    private def justMono(value: String) = s"_root_.reactor.core.publisher.Mono.just($value)"
+
+    private def flux(tpe: String) = s"_root_.reactor.core.publisher.Flux[$tpe]"
   }
 
-  def sflux(tpe: String) = s"_root_.reactor.core.scala.publisher.SFlux[$tpe]"
-  def smono(tpe: String) = s"_root_.reactor.core.scala.publisher.SMono[$tpe]"
-  def mono(tpe: String) = s"_root_.reactor.core.publisher.Mono[$tpe]"
-  def flux(tpe: String) = s"_root_.reactor.core.publisher.Flux[$tpe]"
 }

@@ -3,15 +3,9 @@ package test
 import com.linecorp.armeria.client.Clients
 import com.linecorp.armeria.server.Server
 import com.linecorp.armeria.server.grpc.GrpcService
-import io.grpc.stub.StreamObserver
-import io.micrometer.core.ipc.http.HttpSender.Request.build
-import java.lang.Thread.sleep
 import reactor.core.scala.publisher.{SFlux, SMono}
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scalapb.reactor.test_service.TestServiceGrpc.{TestServiceBlockingStub, TestServiceStub}
-import scalapb.reactor.test_service.{Request, Response, TestServiceGrpc}
-import scalapb.reactor.test_service.TestServiceReactorGrpc.TestService
+import scalapb.reactor.test_service.TestServiceReactorGrpc.{TestService, TestServiceReactorStub}
+import scalapb.reactor.test_service.{Request, Response}
 
 object ArmeriaServiceTest {
 
@@ -50,7 +44,8 @@ object ArmeriaServiceTest {
 
 object ArmeriaClient {
   def main(args: Array[String]): Unit = {
-    val client = Clients.newClient("gproto+http://127.0.0.1:8080", classOf[TestServiceStub])
+    val client = Clients.newClient("gproto+http://127.0.0.1:8080", classOf[TestServiceReactorStub])
     val res = client.unary(Request(in = 10))
-    println(Await.result(res, Duration.Inf))
+    println(res.block())
+  }
 }

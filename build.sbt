@@ -30,9 +30,14 @@ lazy val root = project
   )
   .aggregate(`code-gen`, e2e)
 
+// TODO(ikhoon):
+//  - Publish 0.1.0 for Scala 2.11, 2.12, 2.13
+//  - Publish 0.2.0 for Scala 2.12, 2.13
+
 lazy val `code-gen` = (project in file("code-gen"))
+  .settings(publishSettings: _*)
   .settings(
-    name := "code-gen",
+    name := "reactor-grpc-code-gen",
     scalaVersion := versions.scala212,
     libraryDependencies ++= Seq(
       "com.thesamet.scalapb" %% "compilerplugin" % scalapbVersion,
@@ -56,7 +61,7 @@ lazy val e2e = project
       "io.projectreactor" %% "reactor-scala-extensions" % versions.reactor,
       "com.salesforce.servicelibs" % "reactor-grpc-stub" % versions.reactorGrpc,
       "com.linecorp.armeria" % "armeria-grpc" % versions.armeria % Test,
-      "org.scalameta" %% "munit" % "0.7.19" % Test
+      "org.scalameta" %% "munit" % versions.munit % Test
     ),
     PB.targets in Compile := Seq(
       scalapb.gen(grpc = true) -> (sourceManaged in Compile).value,
@@ -66,3 +71,34 @@ lazy val e2e = project
     ),
     codeGenClasspath := (`code-gen` / Compile / fullClasspath).value
   )
+
+lazy val publishSettings = List(
+  scmInfo := Some(ScmInfo(url("https://github.com/ikhoon/scalapb-reactor"), "git@github.com:http4s/scalapb-reactor.git")),
+  developers := List(
+    Developer(
+      "ikhoon",
+      "Ikhun Um",
+      "ih.pert@gmail.com",
+      url("https://github.com/ikhoon")
+    )
+  ),
+  publishTo := {
+    if (isSnapshot.value)
+      Some(Opts.resolver.sonatypeSnapshots)
+    else
+      Some(Opts.resolver.sonatypeStaging)
+  },
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  publishMavenStyle := true,
+  pomIncludeRepository := { _ => false },
+  Test / publishArtifact := false,
+  credentials ++= (for {
+    username <- sys.env.get("SONATYPE_USERNAME")
+    password <- sys.env.get("SONATYPE_PASSWORD")
+  } yield Credentials(
+    "Sonatype Nexus Repository Manager",
+    "oss.sonatype.org",
+    username,
+    password
+  ))
+)

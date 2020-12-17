@@ -43,6 +43,12 @@ object ReactorCodeGenerator extends CodeGenApp {
         "com.salesforce.servicelibs",
         "reactor-grpc-stub",
         "1.0.1"
+      ),
+      Artifact(
+        "com.thesamet.scalapb",
+        "scalapb-runtime-grpc",
+        scalapb.compiler.Version.scalapbVersion,
+        crossVersion = true
       )
     )
   }
@@ -103,7 +109,6 @@ class ReactorFilePrinter(
   def result(): CodeGeneratorResponse.File = {
     val b = CodeGeneratorResponse.File.newBuilder()
     b.setName(scalaFileName)
-    println(content)
     b.setContent(content)
     b.build()
   }

@@ -11,3 +11,8 @@ target/
 .bsp/
 **/.bloop/*
 **/metals.sbt
+
+# Gradle 
+gradle-wrapper.jar
+build/
+.gradle

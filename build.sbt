@@ -1,3 +1,4 @@
+import sbt.Project.projectToRef
 import scalapb.compiler.Version.scalapbVersion
 
 inThisBuild(
@@ -28,6 +29,7 @@ lazy val root = project
     name := "scalapb-reactor",
     description := "ScalaPB gRPC generator for Project Reactor"
   )
+  .aggregate(protocGen.agg)
   .aggregate(`code-gen`, e2e)
 
 // TODO(ikhoon):

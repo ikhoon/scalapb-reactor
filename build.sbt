@@ -49,13 +49,11 @@ lazy val root = project
 
 lazy val codeGen = (project in file("code-gen"))
   .enablePlugins(BuildInfoPlugin)
-  .settings(publishSettings)
   .settings(
     name := "scalapb-reactor-codegen",
     scalaVersion := versions.scala212,
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "scalapb.reactor",
-    publishTo := sonatypePublishToBundle.value,
     libraryDependencies ++= Seq(
       "com.thesamet.scalapb" %% "compilerplugin" % scalapbVersion,
       "org.scala-lang.modules" %% "scala-collection-compat" % versions.collectionCompat
@@ -63,7 +61,6 @@ lazy val codeGen = (project in file("code-gen"))
   )
 
 lazy val protocGen = protocGenProject("protoc-gen-scalapb-reactor", codeGen)
-  .settings(publishSettings)
   .settings(
     Compile / mainClass := Some("scalapb.reactor.ReactorCodeGenerator"),
     publishTo := sonatypePublishToBundle.value,

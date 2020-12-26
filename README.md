@@ -34,8 +34,8 @@ Please use 0.1.0 for Scala 2.11.
 
 ## Example
 
-ScalaPB-Reactor will generate stub file to `<package>.<file-name>.Reactor<service-name>`.
-If the following proto file is defined, gRPC stub files will be generated to `com.example.test_service.ReactorTestService`.
+ScalaPB-Reactor generates your stub file to `<package>.<file-name>.Reactor<service-name>`.
+The following proto file will be generated to `com.example.test_service.ReactorTestService`.
 
 ```proto
 // file: test_service.proto
@@ -60,7 +60,7 @@ service TestService {
 }
 ```
 
-The generated stub has the following structor.
+The generated gRPC stub for Reactor contains the following structure.
 ```scala
 object ReactorTestServiceGrpc {
   // Implement this trait for your service.

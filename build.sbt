@@ -17,8 +17,9 @@ lazy val versions = new {
   val armeria = "1.3.0"
   val collectionCompat = "2.3.1"
   val munit = "0.7.19"
-  val reactor = "0.8.0"
+  val reactor = "0.7.1"
   val reactorGrpc = "1.0.1"
+  val scala211 = "2.11.12"
   val scala212 = "2.12.12"
   val scala213 = "2.13.4"
 }
@@ -31,10 +32,6 @@ lazy val root = project
   )
   .aggregate(protocGen.agg)
   .aggregate(`code-gen`, e2e)
-
-// TODO(ikhoon):
-//  - Publish 0.1.0 for Scala 2.11, 2.12, 2.13
-//  - Publish 0.2.0 for Scala 2.12, 2.13
 
 lazy val `code-gen` = (project in file("code-gen"))
   .settings(publishSettings: _*)
@@ -56,7 +53,7 @@ lazy val e2e = project
   .in(file("e2e"))
   .enablePlugins(LocalCodeGenPlugin)
   .settings(
-    crossScalaVersions := Seq(versions.scala212, versions.scala213),
+    scalaVersion := versions.scala211,
     skip in publish := true,
     libraryDependencies ++= Seq(
       "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapbVersion,
@@ -65,6 +62,7 @@ lazy val e2e = project
       "com.linecorp.armeria" % "armeria-grpc" % versions.armeria % Test,
       "org.scalameta" %% "munit" % versions.munit % Test
     ),
+    scalacOptions += "-target:jvm-1.8",
     PB.targets in Compile := Seq(
       scalapb.gen(grpc = true) -> (sourceManaged in Compile).value,
       genModule(

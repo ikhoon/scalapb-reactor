@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package scalapb.reactor
+package com.example
 
 import com.example.{Main, TestServiceImpl}
 import com.example.test_service.ReactorTestServiceGrpc.{ReactorTestService, ReactorTestServiceStub}

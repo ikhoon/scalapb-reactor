@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package scalapb.reactor;
+
+import "test_service.proto";
+
+service BarService {
+  rpc Unary(Request) returns (Response);
+}

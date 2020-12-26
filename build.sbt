@@ -1,11 +1,20 @@
-import sbt.Project.projectToRef
 import scalapb.compiler.Version.scalapbVersion
 
 inThisBuild(
   Seq(
+    scalaVersion := versions.scala212,
+    crossScalaVersions := List(versions.scala213, versions.scala212),
     organization := "kr.ikhoon.scalapb-reactor",
     homepage := Some(url("https://github.com/ikhoon/scalapb-reactor")),
     licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    developers := List(
+      Developer(
+        "ikhoon",
+        "Ikhun Um",
+        "ih.pert@gmail.com",
+        url("https://github.com/ikhoon")
+      )
+    ),
     startYear := Some(2020),
     scalacOptions := Seq(
       "-Xsource:2.13"
@@ -27,26 +36,32 @@ lazy val versions = new {
 lazy val root = project
   .in(file("."))
   .settings(
+    sonatypeProfileName := "kr.ikhoon",
+    skip in publish := true,
     name := "scalapb-reactor",
     description := "ScalaPB gRPC generator for Project Reactor"
   )
   .aggregate(protocGen.agg)
-  .aggregate(`code-gen`, e2e)
+  .aggregate(codeGen, e2e)
 
-lazy val `code-gen` = (project in file("code-gen"))
-  .settings(publishSettings: _*)
+lazy val codeGen = (project in file("code-gen"))
+  .enablePlugins(BuildInfoPlugin)
   .settings(
-    name := "reactor-grpc-code-gen",
+    name := "scalapb-reactor-codegen",
     scalaVersion := versions.scala212,
+    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "scalapb.reactor",
     libraryDependencies ++= Seq(
       "com.thesamet.scalapb" %% "compilerplugin" % scalapbVersion,
       "org.scala-lang.modules" %% "scala-collection-compat" % versions.collectionCompat
     )
   )
 
-lazy val protocGen = protocGenProject("protoc-gen-scalapb-reactor", `code-gen`)
+lazy val protocGen = protocGenProject("protoc-gen-scalapb-reactor", codeGen)
   .settings(
-    Compile / mainClass := Some("scalapb.reactor.ReactorCodeGenerator")
+    Compile / mainClass := Some("scalapb.reactor.ReactorCodeGenerator"),
+    publishTo := sonatypePublishToBundle.value,
+    scalaVersion := versions.scala212
   )
 
 lazy val e2e = project
@@ -69,36 +84,5 @@ lazy val e2e = project
         "scalapb.reactor.ReactorCodeGenerator$"
       ) -> (sourceManaged in Compile).value
     ),
-    codeGenClasspath := (`code-gen` / Compile / fullClasspath).value
+    codeGenClasspath := (codeGen / Compile / fullClasspath).value
   )
-
-lazy val publishSettings = List(
-  scmInfo := Some(ScmInfo(url("https://github.com/ikhoon/scalapb-reactor"), "git@github.com:http4s/scalapb-reactor.git")),
-  developers := List(
-    Developer(
-      "ikhoon",
-      "Ikhun Um",
-      "ih.pert@gmail.com",
-      url("https://github.com/ikhoon")
-    )
-  ),
-  publishTo := {
-    if (isSnapshot.value)
-      Some(Opts.resolver.sonatypeSnapshots)
-    else
-      Some(Opts.resolver.sonatypeStaging)
-  },
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-  publishMavenStyle := true,
-  pomIncludeRepository := { _ => false },
-  Test / publishArtifact := false,
-  credentials ++= (for {
-    username <- sys.env.get("SONATYPE_USERNAME")
-    password <- sys.env.get("SONATYPE_PASSWORD")
-  } yield Credentials(
-    "Sonatype Nexus Repository Manager",
-    "oss.sonatype.org",
-    username,
-    password
-  ))
-)

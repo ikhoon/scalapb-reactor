@@ -7,8 +7,8 @@ libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.9.8"
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.2")
 
 // Release
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.13")
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
+addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.3")
 
 // Header
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.6.0")

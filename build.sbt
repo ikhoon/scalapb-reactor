@@ -43,10 +43,6 @@ lazy val root = project
   .aggregate(protocGen.agg)
   .aggregate(codeGen, e2e)
 
-// TODO(ikhoon):
-//  - Publish 0.1.0 for Scala 2.11, 2.12, 2.13
-//  - Publish 0.2.0 for Scala 2.12, 2.13
-
 lazy val codeGen = (project in file("code-gen"))
   .enablePlugins(BuildInfoPlugin)
   .settings(

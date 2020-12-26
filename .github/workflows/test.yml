@@ -1,7 +1,7 @@
 name: Build Pull Requests
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 0.1.x ]
   pull_request:
     type: [ synchronize ]
 
@@ -26,6 +26,11 @@ jobs:
         with:
           java-version: 11
       - name: "2.13 Test"
+        if: github.ref == 'refs/heads/main'
         run: sbt "++ 2.13.4 test"
       - name: "2.12 Test"
+        if: github.ref == 'refs/heads/main'
         run: sbt "++ 2.12.12 test"
+      - name: "2.11 Test"
+        if: github.ref == 'refs/heads/0.1.x'
+        run: sbt "++ 2.11.12 test"

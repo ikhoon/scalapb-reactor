@@ -16,3 +16,6 @@ target/
 gradle-wrapper.jar
 build/
 .gradle
+
+# macOS folder metadata
+.DS_Store

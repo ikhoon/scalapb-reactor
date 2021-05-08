@@ -3,7 +3,6 @@ on:
   push:
     branches: [ main, 0.1.x ]
   pull_request:
-    type: [ synchronize ]
 
 jobs:
   test:
@@ -26,11 +25,11 @@ jobs:
         with:
           java-version: 15
       - name: "2.13 Test"
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.base_ref == 'refs/heads/main' }}
         run: sbt "++ 2.13.5 test"
       - name: "2.12 Test"
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: ${{ github.base_ref == 'refs/heads/main' }}
         run: sbt "++ 2.12.13 test"
       - name: "2.11 Test"
-        if: ${{ github.ref == 'refs/heads/0.1.x' }}
+        if: ${{ github.base_ref == 'refs/heads/0.1.x' }}
         run: sbt "++ 2.11.12 test"

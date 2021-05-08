@@ -24,12 +24,12 @@ inThisBuild(
 
 lazy val versions = new {
   val armeria = "1.3.0"
-  val collectionCompat = "2.3.1"
-  val munit = "0.7.19"
+  val collectionCompat = "2.3.2"
+  val munit = "0.7.25"
   val reactor = "0.8.0"
   val reactorGrpc = "1.0.1"
-  val scala212 = "2.12.12"
-  val scala213 = "2.13.4"
+  val scala212 = "2.12.13"
+  val scala213 = "2.13.5"
 }
 
 lazy val root = project

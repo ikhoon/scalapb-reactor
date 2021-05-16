@@ -35,8 +35,6 @@ class ReactorFilePrinter(
     val fp = new FunctionalPrinter()
     fp.add(
       s"package ${file.scalaPackage.fullName}",
-      "",
-      "import scala.language.implicitConversions",
       ""
     ).print(file.getServices().asScala)((fp, s) => new ServicePrinter(s).print(fp))
       .result()
@@ -189,7 +187,6 @@ class ReactorFilePrinter(
     private def printAsyncClientStub(fp: FunctionalPrinter, method: MethodDescriptor): FunctionalPrinter = {
       val reqType = method.inputType.scalaType
       val resType = method.outputType.scalaType
-      val serviceCall = s"serviceImpl.${method.name}"
 
       val fp1 = method.streamType match {
         case StreamType.Unary =>
@@ -253,8 +250,6 @@ class ReactorFilePrinter(
     private def smono(tpe: String) = s"_root_.reactor.core.scala.publisher.SMono[$tpe]"
 
     private def mono(tpe: String) = s"_root_.reactor.core.publisher.Mono[$tpe]"
-
-    private def justMono(value: String) = s"_root_.reactor.core.publisher.Mono.just($value)"
 
     private def flux(tpe: String) = s"_root_.reactor.core.publisher.Flux[$tpe]"
   }

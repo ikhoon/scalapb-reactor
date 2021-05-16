@@ -53,8 +53,7 @@ object ReactorCodeGenerator extends CodeGenApp {
   def process(request: CodeGenRequest): CodeGenResponse =
     ProtobufGenerator.parseParameters(request.parameter) match {
       case Right(params) =>
-        val implicits =
-          new DescriptorImplicits(params, request.allProtos)
+        val implicits = DescriptorImplicits.fromCodeGenRequest(params, request)
         CodeGenResponse.succeed(
           request.filesToGenerate.collect {
             case file if !file.getServices().isEmpty() =>

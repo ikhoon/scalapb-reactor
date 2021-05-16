@@ -26,7 +26,7 @@ import scalapb.reactor.test_service.{Request, Response}
 
 class IntegrationTest extends munit.FunSuite {
   val resources = FunFixture[(Server, ReactorTestServiceStub)](
-    setup = { test =>
+    setup = { _ =>
       val server =
         Server
           .builder()
@@ -43,7 +43,7 @@ class IntegrationTest extends munit.FunSuite {
       (server, client)
     },
     teardown = { case (server, _) =>
-      server.stop().join()
+      val _ = server.stop().join()
     }
   )
 

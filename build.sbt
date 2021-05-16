@@ -1,3 +1,4 @@
+import sbtprotoc.ProtocPlugin.autoImport.PB
 import scalapb.compiler.Version.scalapbVersion
 
 inThisBuild(
@@ -36,7 +37,7 @@ lazy val root = project
   .in(file("."))
   .settings(
     sonatypeProfileName := "kr.ikhoon",
-    skip in publish := true,
+    publish / skip := true,
     name := "scalapb-reactor",
     description := "ScalaPB gRPC generator for Project Reactor"
   )
@@ -68,7 +69,7 @@ lazy val e2e = project
   .enablePlugins(LocalCodeGenPlugin)
   .settings(
     crossScalaVersions := Seq(versions.scala212, versions.scala213),
-    skip in publish := true,
+    publish / skip := true,
     libraryDependencies ++= Seq(
       "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapbVersion,
       "io.projectreactor" %% "reactor-scala-extensions" % versions.reactor,
@@ -76,11 +77,11 @@ lazy val e2e = project
       "com.linecorp.armeria" % "armeria-grpc" % versions.armeria % Test,
       "org.scalameta" %% "munit" % versions.munit % Test
     ),
-    PB.targets in Compile := Seq(
-      scalapb.gen(grpc = true) -> (sourceManaged in Compile).value,
+    Compile / PB.targets := Seq(
+      scalapb.gen(grpc = true) -> (Compile / sourceManaged).value,
       genModule(
         "scalapb.reactor.ReactorCodeGenerator$"
-      ) -> (sourceManaged in Compile).value
+      ) -> (Compile / sourceManaged).value
     ),
     codeGenClasspath := (codeGen / Compile / fullClasspath).value
   )

@@ -7,7 +7,7 @@ libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.3"
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.2")
 
 // Scalac options
-addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.17")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.20")
 
 // Release
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")

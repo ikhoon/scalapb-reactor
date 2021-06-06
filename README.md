@@ -16,7 +16,7 @@ The ScalaPB gRPC generator to run Reactive gRPC server and client on top Project
 Add the following configuration to `project/plugins.sbt`.
 
 ```sbt
-addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.0-RC4")
+addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.4")
 libraryDependencies += "kr.ikhoon.scalapb-reactor" %% "scalapb-reactor-codegen" % "<latest-version>"
 ```
 
@@ -29,7 +29,7 @@ PB.targets in Compile := Seq(
 )
 ```
 
-ScalaPB-Reactor 0.2.0 currently supports Scala 2.12 and 2.13.
+ScalaPB-Reactor 0.3.0 currently supports Scala 2.12 and 2.13.
 Please use 0.1.0 for Scala 2.11.
 
 ## Example

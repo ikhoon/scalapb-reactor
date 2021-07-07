@@ -28,7 +28,7 @@ lazy val versions = new {
   val collectionCompat = "2.4.4"
   val munit = "0.7.26"
   val reactor = "0.8.0"
-  val reactorGrpc = "1.0.1"
+  val reactorGrpc = "1.1.0"
   val scala212 = "2.12.14"
   val scala213 = "2.13.6"
 }

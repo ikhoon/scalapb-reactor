@@ -11,7 +11,7 @@ addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.20")
 
 // Release
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.10.0")
-addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.7")
+addSbtPlugin("com.github.sbt" % "sbt-ci-release" % "1.5.10")
 
 // Header
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.6.0")

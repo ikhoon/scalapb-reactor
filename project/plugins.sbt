@@ -4,7 +4,7 @@ addSbtPlugin("com.thesamet" % "sbt-protoc-gen-project" % "0.1.7")
 libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.11.11"
 
 // Scalafmt
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.2")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.6")
 
 // Scalac options
 addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.20")

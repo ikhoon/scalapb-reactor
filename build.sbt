@@ -24,7 +24,7 @@ inThisBuild(
 )
 
 lazy val versions = new {
-  val armeria = "1.3.0"
+  val armeria = "1.17.0"
   val collectionCompat = "2.4.4"
   val munit = "0.7.29"
   val reactor = "0.8.0"

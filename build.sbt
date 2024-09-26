@@ -30,7 +30,7 @@ lazy val versions = new {
   val reactor = "0.8.0"
   val reactorGrpc = "1.2.3"
   val scala212 = "2.12.16"
-  val scala213 = "2.13.8"
+  val scala213 = "2.13.15"
 }
 
 lazy val root = project
